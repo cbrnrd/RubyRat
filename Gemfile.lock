@@ -1,0 +1,31 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    addressable (2.5.1)
+      public_suffix (~> 2.0, >= 2.0.2)
+    aes (0.5.0)
+    colorize (0.8.1)
+    ffi (1.9.18)
+    launchy (2.4.3)
+      addressable (~> 2.3)
+    nanolog (0.1.1)
+    public_suffix (2.0.5)
+    rbnacl (5.0.0)
+      ffi
+    terminal-table (1.7.1)
+      unicode-display_width (~> 1.1.1)
+    unicode-display_width (1.1.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  aes
+  colorize
+  launchy
+  nanolog
+  rbnacl
+  terminal-table
+
+BUNDLED WITH
+   1.14.6
