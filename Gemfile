@@ -3,6 +3,7 @@ gem 'rbnacl'
 gem 'nanolog'
 gem 'terminal-table'
 gem 'colorize'
+gem 'rb-readline'
 
 # Client gems
 gem 'launchy'
