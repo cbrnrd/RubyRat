@@ -39,6 +39,7 @@ module RubyRat
         t.add_row ['wget <url>', 'Download a remote file on the client']
         t.add_row ['ifconfig', 'View network interface information']
         t.add_row ['pwd', 'Show the currend directory on the client']
+        t.add_row ['shell', 'Open a reverse shell on the client']
         #t.add_row ['scan <host>', 'Perform a port scan on a host on the client network']
       end
     end

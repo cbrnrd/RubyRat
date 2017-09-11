@@ -1,9 +1,10 @@
 gem 'aes'
-gem 'rbnacl'
+#gem 'rbnacl'
 gem 'nanolog'
 gem 'terminal-table'
 gem 'colorize'
 gem 'rb-readline'
+gem 'ocra'
 
 # Client gems
 gem 'launchy'
