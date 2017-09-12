@@ -3,11 +3,20 @@ A simple and portable RAT made in Ruby
 
 # Getting started
 
-### Building the client  
-To build the client, you can use [`OCRA`](https://github.com/larsch/ocra) or whatever ruby to executable tool you want.
+### Compiling the client
+In order to compile the client, you must use ruby 2.2.2 (`rvm install 2.2.2 && rvm use 2.2.2`) and run `build_client.sh`.
+
+### `build_client.sh` usage
+`build_client.sh <osx,win,l32,l64> <EXENAME>`
+
+ `<osx,win,l32,l64>` are the platforms you can compile for.
+
+ `<EXENAME>` is the final name of the outputted executable.
+
 
 ### Starting the interface
 To start the RubyRat interface, just type `./rubyrat`. If you want to run the interface in debug mode, run `./rubyrat DEBUG`. As soon as the interface starts, the server will start listening on port 4567 for connections
+
 
 # Features
 ### Current:
@@ -17,7 +26,8 @@ To start the RubyRat interface, just type `./rubyrat`. If you want to run the in
 - Persistent clients
 
 ### Coming
-- AES encrypted communication (very soon)
+- Reverse shell support (in progress)
+- AES encrypted communication
 - Module support
 - Persistence mechanisms
 - Port scanning a host on the client's network
